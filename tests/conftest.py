@@ -70,5 +70,52 @@ def mock_adk(monkeypatch):
 
         monkeypatch.setattr("app.srop.pipeline.run", mock_run)
     """
-    # TODO: implement mock_adk fixture
-    pass
+    async def mock_run_adk(agent, user_id, session_id, user_message):
+        message = user_message.lower()
+
+        if "plan tier" in message or "account" in message:
+            plan_tier = _extract_plan_tier(getattr(agent, "instruction", ""))
+            return (
+                f"Your plan tier is {plan_tier}.",
+                "account",
+                [
+                    {
+                        "tool_name": "get_account_status",
+                        "args": {"user_id": user_id},
+                        "result": {"user_id": user_id, "plan_tier": plan_tier},
+                    }
+                ],
+                [],
+            )
+
+        if "rotate" in message or "deploy key" in message:
+            return (
+                "To rotate a deploy key, follow the docs steps. [chunk_test_001 score=0.92]",
+                "knowledge",
+                [
+                    {
+                        "tool_name": "search_docs",
+                        "args": {"query": user_message, "k": 5},
+                        "result": [
+                            {
+                                "chunk_id": "chunk_test_001",
+                                "score": 0.92,
+                                "content": "Rotate deploy key steps...",
+                                "metadata": {"source": "deploy-keys.md"},
+                            }
+                        ],
+                    }
+                ],
+                ["chunk_test_001"],
+            )
+
+        return ("Hello! How can I help?", "smalltalk", [], [])
+
+    monkeypatch.setattr("app.srop.pipeline._run_adk", mock_run_adk)
+
+
+def _extract_plan_tier(instruction: str) -> str:
+    for line in instruction.splitlines():
+        if line.strip().startswith("- plan_tier:"):
+            return line.split(":", 1)[1].strip() or "free"
+    return "free"

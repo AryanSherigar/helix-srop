@@ -11,11 +11,12 @@ Intent → sub-agent:
 
 See docs/google-adk-guide.md for AgentTool pattern and event extraction.
 """
-# from google.adk.agents import LlmAgent
-# from google.adk.tools.agent_tool import AgentTool
-# from app.agents.knowledge import knowledge_agent
-# from app.agents.account import account_agent
-# from app.settings import settings
+from google.adk.agents import LlmAgent
+from google.adk.tools.agent_tool import AgentTool
+
+from app.agents.account import account_agent
+from app.agents.knowledge import knowledge_agent
+from app.settings import settings
 
 ROOT_INSTRUCTION = """
 You are the Helix Support Concierge — a routing agent.
@@ -30,13 +31,12 @@ Always call a tool when intent matches. Never answer knowledge or account questi
 User context will be in the system message — use it.
 """
 
-# TODO: wire up sub-agents and root orchestrator
-# knowledge_tool = AgentTool(agent=knowledge_agent)
-# account_tool   = AgentTool(agent=account_agent)
+knowledge_tool = AgentTool(agent=knowledge_agent)
+account_tool = AgentTool(agent=account_agent)
 
-# root_agent = LlmAgent(
-#     name="srop_root",
-#     model=settings.adk_model,
-#     instruction=ROOT_INSTRUCTION,
-#     tools=[knowledge_tool, account_tool],
-# )
+root_agent = LlmAgent(
+  name="srop_root",
+  model=settings.adk_model,
+  instruction=ROOT_INSTRUCTION,
+  tools=[knowledge_tool, account_tool],
+)
