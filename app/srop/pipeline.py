@@ -50,7 +50,12 @@ class PipelineResult:
     trace_id: str
 
 
-async def run(session_id: str, user_message: str, db: AsyncSession) -> PipelineResult:
+async def run(
+    session_id: str,
+    user_message: str,
+    db: AsyncSession,
+    idempotency_key: str | None = None,
+) -> PipelineResult:
     trace_id = str(uuid.uuid4())
     log = structlog.get_logger()
 
@@ -111,6 +116,7 @@ async def run(session_id: str, user_message: str, db: AsyncSession) -> PipelineR
             role="assistant",
             content=content,
             trace_id=trace_id,
+            idempotency_key=idempotency_key,
         )
     )
     db.add(

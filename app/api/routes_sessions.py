@@ -24,7 +24,6 @@ class CreateSessionRequest(BaseModel):
 
 class CreateSessionResponse(BaseModel):
     session_id: str
-    user_id: str
 
 
 @router.post("/sessions", response_model=CreateSessionResponse)
@@ -64,4 +63,4 @@ async def create_session(
     await db.commit()
     await db.refresh(session)
 
-    return CreateSessionResponse(session_id=session.session_id, user_id=session.user_id)
+    return CreateSessionResponse(session_id=session.session_id)

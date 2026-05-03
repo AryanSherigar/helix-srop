@@ -10,6 +10,7 @@ async def test_create_session(client):
     resp = await client.post("/v1/sessions", json={"user_id": "u_test_001"})
     assert resp.status_code == 200
     assert "session_id" in resp.json()
+    assert "user_id" not in resp.json()
 
 
 @pytest.mark.asyncio
@@ -32,7 +33,10 @@ async def test_knowledge_query_routes_correctly(client, mock_adk):
     session_id = sess.json()["session_id"]
 
     # Turn 1 — knowledge query
-    r1 = await client.post(f"/v1/chat/{session_id}", json={"content": "How do I rotate a deploy key?"})
+    r1 = await client.post(
+        f"/v1/chat/{session_id}",
+        json={"message": "How do I rotate a deploy key?"},
+    )
     assert r1.status_code == 200
     assert r1.json()["routed_to"] == "knowledge"
     trace_id = r1.json()["trace_id"]
@@ -43,7 +47,10 @@ async def test_knowledge_query_routes_correctly(client, mock_adk):
     assert len(trace.json()["retrieved_chunk_ids"]) > 0
 
     # Turn 2 — follow-up in same session
-    r2 = await client.post(f"/v1/chat/{session_id}", json={"content": "What is my plan tier?"})
+    r2 = await client.post(
+        f"/v1/chat/{session_id}",
+        json={"message": "What is my plan tier?"},
+    )
     assert r2.status_code == 200
     # Agent should know plan_tier from state — not re-ask
     assert "pro" in r2.json()["reply"].lower()
@@ -51,5 +58,5 @@ async def test_knowledge_query_routes_correctly(client, mock_adk):
 
 @pytest.mark.asyncio
 async def test_session_not_found_returns_404(client):
-    resp = await client.post("/v1/chat/nonexistent-id", json={"content": "hello"})
+    resp = await client.post("/v1/chat/nonexistent-id", json={"message": "hello"})
     assert resp.status_code == 404
