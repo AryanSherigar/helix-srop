@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
 
 from app.api import routes_sessions, routes_chat, routes_traces
+from app.api.errors import HelixError, helix_error_handler
 from app.db.session import init_db
 from app.obs.logging import configure_logging
 
@@ -28,4 +28,4 @@ async def healthz() -> dict:
 
 
 # TODO: register exception handlers for HelixError subclasses
-# app.add_exception_handler(HelixError, helix_error_handler)
+app.add_exception_handler(HelixError, helix_error_handler)
