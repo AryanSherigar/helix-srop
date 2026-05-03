@@ -1,0 +1,50 @@
+[project]
+name = "helix-srop"
+version = "0.1.0"
+description = "Helix AI Support Concierge — SROP Assignment"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.3.0",
+    "sqlalchemy[asyncio]>=2.0.0",
+    "aiosqlite>=0.20.0",          # SQLite async driver
+    "alembic>=1.13.0",
+    "google-adk>=0.5.0",          # Google Agent Development Kit
+    "google-generativeai>=0.8.0", # or swap for openai / anthropic
+    "chromadb>=0.5.0",            # vector store (swap if you prefer another)
+    "structlog>=24.0.0",
+    "tenacity>=8.3.0",
+    "python-jose[cryptography]>=3.3.0",  # JWT for extension E2
+    "httpx>=0.27.0",              # async HTTP client for tool calls
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "httpx>=0.27.0",
+    "ruff>=0.5.0",
+    "mypy>=1.10.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
