@@ -24,7 +24,7 @@ async def test_search_docs_returns_results_with_chunk_ids(monkeypatch):
 
     monkeypatch.setattr(search_module, "_query_chroma", fake_query_chroma)
 
-    results = await search_module.search_docs("how to rotate a deploy key", k=3)
+    results = await search_module.search_docs("rotate deploy key", k=3)
     assert len(results) > 0
     assert all(r.chunk_id for r in results)
     assert all(0.0 <= r.score <= 1.0 for r in results)

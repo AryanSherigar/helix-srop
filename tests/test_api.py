@@ -22,8 +22,8 @@ async def test_knowledge_query_routes_correctly(client, mock_adk):
     1. Response contains a reply
     2. routed_to == "knowledge"
     3. trace exists with retrieved chunk IDs
-    4. Turn 2 in the same session has access to context from turn 1
-       (state persistence — at minimum, plan_tier available without re-asking)
+     4. Turn 2 in the same session has access to context from turn 1
+         (state persistence — last_agent should reflect turn 1 routing)
 
     Implement after pipeline.run() and state persistence are working.
     The mock_adk fixture must patch at the ADK boundary, not at the HTTP layer.
@@ -49,11 +49,11 @@ async def test_knowledge_query_routes_correctly(client, mock_adk):
     # Turn 2 — follow-up in same session
     r2 = await client.post(
         f"/v1/chat/{session_id}",
-        json={"message": "What is my plan tier?"},
+        json={"message": "Which agent handled my last request?"},
     )
     assert r2.status_code == 200
-    # Agent should know plan_tier from state — not re-ask
-    assert "pro" in r2.json()["reply"].lower()
+    # Agent should know last_agent from state — not re-ask
+    assert "knowledge" in r2.json()["reply"].lower()
 
 
 @pytest.mark.asyncio

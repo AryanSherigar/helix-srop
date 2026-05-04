@@ -16,7 +16,7 @@ router = APIRouter(tags=["traces"])
 class ToolCallRecord(BaseModel):
     tool_name: str
     args: dict
-    result: dict | str | None
+    result: dict | list | str | None
 
 
 class TraceResponse(BaseModel):

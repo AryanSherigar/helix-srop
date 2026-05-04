@@ -31,10 +31,11 @@ import structlog
 from google.adk.agents import LlmAgent
 from google.adk.runners import InMemoryRunner
 from google.adk.tools.agent_tool import AgentTool
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.errors import SessionNotFoundError, UpstreamTimeoutError
+from app.api.errors import HelixError, SessionNotFoundError, UpstreamTimeoutError
 from app.agents.account import account_agent
 from app.agents.knowledge import knowledge_agent
 from app.agents.orchestrator import ROOT_INSTRUCTION
@@ -66,12 +67,21 @@ async def run(
     if session is None:
         raise SessionNotFoundError(f"Session {session_id} does not exist")
 
-    state = SessionState.from_db_dict(session.state or {})
     structlog.contextvars.bind_contextvars(
         session_id=session_id,
         trace_id=trace_id,
-        user_id=state.user_id,
     )
+    if not session.state:
+        log.error("session_state_missing")
+        raise HelixError(f"Session state missing for session {session_id}")
+
+    try:
+        state = SessionState.from_db_dict(session.state)
+    except ValidationError as exc:
+        log.error("session_state_invalid", errors=exc.errors())
+        raise HelixError(f"Invalid session state for session {session_id}") from exc
+
+    structlog.contextvars.bind_contextvars(user_id=state.user_id)
 
     log.info("pipeline_started", user_message_len=len(user_message))
     started_at = time.perf_counter()
@@ -130,7 +140,12 @@ async def run(
         )
     )
 
-    await db.commit()
+    try:
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        log.exception("pipeline_db_commit_failed")
+        raise
 
     log.info(
         "pipeline_completed",

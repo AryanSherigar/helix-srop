@@ -73,6 +73,20 @@ def mock_adk(monkeypatch):
     async def mock_run_adk(agent, user_id, session_id, user_message):
         message = user_message.lower()
 
+        if (
+            "last agent" in message
+            or "previous agent" in message
+            or "last_agent" in message
+            or ("last request" in message and "agent" in message)
+        ):
+            last_agent = _extract_last_agent(getattr(agent, "instruction", ""))
+            return (
+                f"Last agent was {last_agent}.",
+                "smalltalk",
+                [],
+                [],
+            )
+
         if "plan tier" in message or "account" in message:
             plan_tier = _extract_plan_tier(getattr(agent, "instruction", ""))
             return (
@@ -119,3 +133,10 @@ def _extract_plan_tier(instruction: str) -> str:
         if line.strip().startswith("- plan_tier:"):
             return line.split(":", 1)[1].strip() or "free"
     return "free"
+
+
+def _extract_last_agent(instruction: str) -> str:
+    for line in instruction.splitlines():
+        if line.strip().startswith("- last_agent:"):
+            return line.split(":", 1)[1].strip() or "unknown"
+    return "unknown"
