@@ -23,6 +23,19 @@ curl -s -X POST localhost:8000/v1/chat/$SESSION \
   -d '{"content": "How do I rotate a deploy key?"}' | jq .
 ```
 
+## Idempotency
+
+Provide an `Idempotency-Key` header on `POST /v1/chat/{session_id}` to safely retry.
+Replays return the original `reply`, `routed_to`, and `trace_id` (even if the body differs),
+and the pipeline runs only once.
+
+```bash
+curl -s -X POST localhost:8000/v1/chat/$SESSION \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: idem-demo-001" \
+  -d '{"message": "How do I rotate a deploy key?"}' | jq .
+```
+
 ## Architecture
 
 ```
@@ -65,7 +78,7 @@ I chose [Chroma / LanceDB / FAISS] because...
 - [ ] E1: Idempotency
 - [ ] E2: Escalation agent
 - [ ] E3: Streaming SSE
-- [ ] E4: Reranking
+- [x] E4: Reranking (see docs/reranking-eval.md)
 - [ ] E5: Guardrails
 - [ ] E6: Docker
 - [ ] E7: Eval harness

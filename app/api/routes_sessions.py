@@ -51,6 +51,8 @@ async def create_session(
         user_id=body.user_id,
         plan_tier=body.plan_tier,
         last_agent=None,
+        last_ticket_id=None,
+        open_ticket_ids=[],
         turn_count=0,
     )
     session = SessionModel(

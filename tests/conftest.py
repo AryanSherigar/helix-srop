@@ -18,6 +18,7 @@ from app.main import app
 
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+REFUSAL_TEXT = "I can only help with Helix product and account questions."
 
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 TestSessionLocal = async_sessionmaker(test_engine, expire_on_commit=False)
@@ -70,8 +71,14 @@ def mock_adk(monkeypatch):
 
         monkeypatch.setattr("app.srop.pipeline.run", mock_run)
     """
+    call_state = {"count": 0}
+
     async def mock_run_adk(agent, user_id, session_id, user_message):
+        call_state["count"] += 1
         message = user_message.lower()
+
+        if any(term in message for term in ("poem", "joke", "story")):
+            return (REFUSAL_TEXT, "smalltalk", [], [])
 
         if (
             "last agent" in message
@@ -126,6 +133,7 @@ def mock_adk(monkeypatch):
         return ("Hello! How can I help?", "smalltalk", [], [])
 
     monkeypatch.setattr("app.srop.pipeline._run_adk", mock_run_adk)
+    return call_state
 
 
 def _extract_plan_tier(instruction: str) -> str:

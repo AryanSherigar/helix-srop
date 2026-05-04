@@ -13,7 +13,9 @@ from pydantic import BaseModel, Field
 class SessionState(BaseModel):
     user_id: str
     plan_tier: Literal["free", "pro", "enterprise"] = "free"
-    last_agent: Literal["knowledge", "account", "smalltalk"] | None = None
+    last_agent: Literal["knowledge", "account", "escalation", "smalltalk"] | None = None
+    last_ticket_id: str | None = None
+    open_ticket_ids: list[str] = Field(default_factory=list)
     turn_count: int = 0
 
     def to_db_dict(self) -> dict:

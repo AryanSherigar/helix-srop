@@ -12,6 +12,7 @@ async def test_search_docs_returns_results_with_chunk_ids(monkeypatch):
     from app.settings import settings
 
     monkeypatch.setattr(settings, "google_api_key", "test-key")
+    monkeypatch.setattr(settings, "rerank_enabled", False)
     monkeypatch.setattr(search_module, "_embed_query", lambda query: [0.1, 0.2, 0.3])
 
     def fake_query_chroma(query_embedding, k, product_area):
